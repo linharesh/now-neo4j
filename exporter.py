@@ -25,18 +25,24 @@ def load_dependencies_from_sqlite(sqlite_db_path):
     return dependencies
 
 def add_dependency(tx, source, target):
-    tx.run("MERGE (source:Evaluation {id:$source_id, name: $source_name}) "
-           "MERGE (source)-[:CONTRIBUTED_TO]->(target:Evaluation {id:$target_id, name: $target_name})",
-           source_id = source.ev_id, target_name=target.ev_id())
+        tx.run("MATCH (source),(target) WHERE source.code_component_id = $source_cc_id AND target.code_component_id = $target_cc_id MERGE (source)-[:depends_on]->(target)",
+           source_cc_id = source.code_component_id, target_cc_id = target.code_component_id)
+
+def add_node(tx,node):
+    tx.run("MERGE (node:"+node.code_component_type+"{name:$name, code_component_id:$code_component_id})",
+          name=node.code_component_name, code_component_id=node.code_component_id)
 
 
 def insert_dependencies_in_neo4j(dependencies):
-    driver = GraphDatabase.driver("bolt://localhost:7687", auth=("neo4j", "123456"))
+    driver = GraphDatabase.driver(config.NEO4J_DATABASE_URL, auth=(config.NEO4J_DATABASE_USERNAME, config.NEO4J_DATABASE_PASSWORD))
     session = driver.session()
     for source,target in dependencies:
+        session.write_transaction(add_node,source)
+        session.write_transaction(add_node,target)
         session.write_transaction(add_dependency, source, target)
+    session.close()
 
 config = Config()
 dependencies = load_dependencies_from_sqlite(config.NOW_DB_PATH)
-print(len(dependencies))
 insert_dependencies_in_neo4j(dependencies)
+print("Done.")

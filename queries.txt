@@ -1,0 +1,1 @@
+MATCH p=(o{name:"39"})-[r*]-(x{name:"print(b)"}) RETURN p
