@@ -25,12 +25,19 @@ def load_dependencies_from_sqlite(sqlite_db_path):
     return dependencies
 
 def add_dependency(tx, source, target):
-        tx.run("MATCH (source),(target) WHERE source.code_component_id = $source_cc_id AND target.code_component_id = $target_cc_id MERGE (source)-[:depends_on]->(target)",
+        tx.run("MATCH (source:Evaluation),(target:Evaluation) WHERE source.id = $source_ev_id AND target.id = $target_ev_id MERGE (source)-[:depends_on]->(target)",
+           source_ev_id = source.ev_id, target_ev_id = target.ev_id)
+        tx.run("MATCH (source:CodeComponent),(target:CodeComponent) WHERE source.id = $source_cc_id AND target.id = $target_cc_id MERGE (source)-[:depends_on]->(target)",
            source_cc_id = source.code_component_id, target_cc_id = target.code_component_id)
 
 def add_node(tx,node):
-    tx.run("MERGE (node:"+node.code_component_type+"{name:$name, code_component_id:$code_component_id})",
-          name=node.code_component_name, code_component_id=node.code_component_id)
+    tx.run("MERGE (node:Evaluation{id:$evaluation_id,name:$name})",
+          evaluation_id=node.ev_id, name=node.code_component_name)
+    tx.run("MERGE (node:CodeComponent{id:$cc_id,name:$name,type:$cc_type})",
+          cc_id=node.code_component_id, name=node.code_component_name, cc_type= node.code_component_type)
+    tx.run("MATCH (eval:Evaluation),(cc:CodeComponent) WHERE eval.id = $ev_id AND cc.id= $cc_id MERGE (eval)-[:Of]->(cc)",
+           ev_id = node.ev_id, cc_id = node.code_component_id)
+  
 
 
 def insert_dependencies_in_neo4j(dependencies):
