@@ -24,32 +24,29 @@ def load_dependencies_from_sqlite(sqlite_db_path):
         dependencies.append((source,target))
     return dependencies
 
-def add_dependency(tx, source, target):
-        tx.run("MATCH (source:Evaluation),(target:Evaluation) WHERE source.id = $source_ev_id AND target.id = $target_ev_id MERGE (source)-[:depends_on]->(target)",
-           source_ev_id = source.ev_id, target_ev_id = target.ev_id)
-        tx.run("MATCH (source:CodeComponent),(target:CodeComponent) WHERE source.id = $source_cc_id AND target.id = $target_cc_id MERGE (source)-[:depends_on]->(target)",
-           source_cc_id = source.code_component_id, target_cc_id = target.code_component_id)
+#def add_dependency(tx, source, target):
+#        tx.run("MATCH (source:Evaluation),(target:Evaluation) WHERE source.evaluation_id = $source_ev_id AND target.evaluation_id = $target_ev_id MERGE (source)-[:depends_on]->(target)",
+#           source_ev_id = source.ev_id, target_ev_id = target.ev_id)
 
-def add_node(tx,node):
-    tx.run("MERGE (node:Evaluation{id:$evaluation_id,name:$name})",
-          evaluation_id=node.ev_id, name=node.code_component_name)
-    tx.run("MERGE (node:CodeComponent{id:$cc_id,name:$name,type:$cc_type})",
-          cc_id=node.code_component_id, name=node.code_component_name, cc_type= node.code_component_type)
-    tx.run("MATCH (eval:Evaluation),(cc:CodeComponent) WHERE eval.id = $ev_id AND cc.id= $cc_id MERGE (eval)-[:Of]->(cc)",
-           ev_id = node.ev_id, cc_id = node.code_component_id)
-  
+#def add_node(tx,node):
+#    tx.run("MERGE (node:Evaluation{evaluation_id:$evaluation_id, name:$name, code_component_id:$code_component_id, code_component_type:$code_component_type})",
+#          evaluation_id=node.ev_id, name=node.code_component_name, code_component_id=node.code_component_id, code_component_type=node.code_component_type)
 
 
-def insert_dependencies_in_neo4j(dependencies):
-    driver = GraphDatabase.driver(config.NEO4J_DATABASE_URL, auth=(config.NEO4J_DATABASE_USERNAME, config.NEO4J_DATABASE_PASSWORD))
-    session = driver.session()
-    for source,target in dependencies:
-        session.write_transaction(add_node,source)
-        session.write_transaction(add_node,target)
-        session.write_transaction(add_dependency, source, target)
-    session.close()
+#def insert_dependencies_in_neo4j(dependencies):
+#    driver = GraphDatabase.driver(config.NEO4J_DATABASE_URL, auth=(config.NEO4J_DATABASE_USERNAME, config.NEO4J_DATABASE_PASSWORD))
+#    session = driver.session()
+#    i = 0
+#   print("Dependencies len:"+str(len(dependencies)))
+#    for source,target in dependencies:
+#        session.write_transaction(add_node,source)
+#        session.write_transaction(add_node,target)
+#        session.write_transaction(add_dependency, source, target)
+#        i += 1
+#        print(str(i)+" ~ ",end="")
+#    session.close()
 
-config = Config()
-dependencies = load_dependencies_from_sqlite(config.NOW_DB_PATH)
-insert_dependencies_in_neo4j(dependencies)
-print("Done.")
+#config = Config()
+#dependencies = load_dependencies_from_sqlite(config.NOW_DB_PATH)
+#insert_dependencies_in_neo4j(dependencies)
+#print("Done.")
