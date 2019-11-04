@@ -8,7 +8,8 @@ def load_dependencies_from_sqlite(sqlite_db_path):
     conn = sqlite3.connect(sqlite_db_path)
     cursor = conn.cursor()
 
-    query = ("select EV_INFLU.id as 'EV_INFLU_ID', CC_INFLU.id as 'CC_INFLU_ID', CC_INFLU.type as 'CC_INFLU_TYPEOF', CC_INFLU.name as 'CC_INFLU_NAME', "
+    query = ("select D.type as 'DEPENDENCY_TYPE', "
+            "EV_INFLU.id as 'EV_INFLU_ID', CC_INFLU.id as 'CC_INFLU_ID', CC_INFLU.type as 'CC_INFLU_TYPEOF', CC_INFLU.name as 'CC_INFLU_NAME', "
             "EV_DEPEND.id as 'EV_DEPEND_ID', CC_DEPEND.id as 'CC_DEPEND_ID', CC_DEPEND.type as 'CC_DEPEND_TYPEOF', CC_DEPEND.name as 'CC_DEPEND_NAME' "
             "from dependency D "
             "join evaluation EV_DEPEND on D.dependent_id = EV_DEPEND.id "
