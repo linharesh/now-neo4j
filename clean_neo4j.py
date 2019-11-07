@@ -6,3 +6,6 @@ driver = GraphDatabase.driver(config.NEO4J_DATABASE_URL, auth=(config.NEO4J_DATA
 with driver.session() as session:
     result = session.run("MATCH (n) DETACH DELETE n")
     print(result)
+    result = session.run(":style reset")
+    print(result)
+    
