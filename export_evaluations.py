@@ -11,9 +11,9 @@ def load_dependencies(sqlite_db_path):
     cursor = conn.cursor()
     query = ("select D.type as 'DEPENDENCY_TYPE', "
             "EV_INFLU.trial_id, EV_INFLU.id, EV_INFLU.checkpoint, EV_INFLU.code_component_id, EV_INFLU.activation_id, "
-            "EV_INFLU.repr, EV_INFLU.member_container_activation_id, EV_INFLU.member_container_id, CC_INFLU.name, "
+            "EV_INFLU.repr, EV_INFLU.member_container_activation_id, EV_INFLU.member_container_id, CC_INFLU.name, CC_INFLU.type, "
             "EV_DEPEND.trial_id, EV_DEPEND.id, EV_DEPEND.checkpoint, EV_DEPEND.code_component_id, EV_DEPEND.activation_id, "
-            "EV_DEPEND.repr, EV_DEPEND.member_container_activation_id, EV_DEPEND.member_container_id, CC_DEPEND.name "
+            "EV_DEPEND.repr, EV_DEPEND.member_container_activation_id, EV_DEPEND.member_container_id, CC_DEPEND.name, CC_DEPEND.type "
             "from dependency D "
             "join evaluation EV_DEPEND on D.dependent_id = EV_DEPEND.id "
             "join evaluation EV_INFLU on D.dependency_id = EV_INFLU.id "
@@ -22,14 +22,14 @@ def load_dependencies(sqlite_db_path):
     dependencies = []
     for tupl in cursor.execute(query,[]):
         typeof = tupl[0]
-        target = Evaluation(tupl[1],tupl[2],tupl[3],tupl[4],tupl[5],tupl[6],tupl[7],tupl[8],tupl[9])
-        source = Evaluation(tupl[10],tupl[11],tupl[12],tupl[13],tupl[14],tupl[15],tupl[16],tupl[17],tupl[18])
+        target = Evaluation(tupl[1],tupl[2],tupl[3],tupl[4],tupl[5],tupl[6],tupl[7],tupl[8],tupl[9],tupl[10])
+        source = Evaluation(tupl[11],tupl[12],tupl[13],tupl[14],tupl[15],tupl[16],tupl[17],tupl[18],tupl[19],tupl[20])
         dependencies.append(Dependency(source,target,typeof))
     conn.close()
     return dependencies
 
 def add_node(tx,ev):
-    tx.run("MERGE (node:Evaluation{trial_id:$trial_id,ev_id:$ev_id,checkpoint:$checkpoint,cc_id:$cc_id,activation_id:$activation_id,representation:$representation,member_container_activation_id:$member_container_activation_id,member_container_id:$member_container_id,name:$name})",
+    tx.run("MERGE (node:Evaluation:"+ev.typeof+"{trial_id:$trial_id,ev_id:$ev_id,checkpoint:$checkpoint,cc_id:$cc_id,activation_id:$activation_id,representation:$representation,member_container_activation_id:$member_container_activation_id,member_container_id:$member_container_id,name:$name,type:$typeof})",
         trial_id = ev.trial_id,
         ev_id = ev.ev_id,
         checkpoint = ev.checkpoint,
@@ -38,7 +38,8 @@ def add_node(tx,ev):
         representation = ev.representation,
         member_container_activation_id = ev.member_container_activation_id,
         member_container_id = ev.member_container_id,
-        name = ev.name)
+        name = ev.name,
+        typeof = ev.typeof)
 
 def add_dependency(tx, dependency):
     tx.run("MATCH (source:Evaluation),(target:Evaluation) WHERE source.trial_id = $source_trial_id AND target.trial_id = $target_trial_id AND source.ev_id = $source_ev_id AND target.ev_id = $target_ev_id MERGE (source)-[:"+dependency.typeof+"]->(target)",

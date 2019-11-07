@@ -29,7 +29,7 @@ def load_dependencies(sqlite_db_path):
     return dependencies
 
 def add_node(tx,cc):
-    tx.run("MERGE (node:CodeComponent{trial_id:$trial_id,cc_id:$cc_id,name:$name,type:$typeof,mode:$mode,first_char_line:$first_char_line,first_char_column:$first_char_column,last_char_line:$last_char_line,last_char_columnm:$last_char_columnm,container_id:$container_id})",
+    tx.run("MERGE (node:CodeComponent:"+cc.typeof+"{trial_id:$trial_id,cc_id:$cc_id,name:$name,type:$typeof,mode:$mode,first_char_line:$first_char_line,first_char_column:$first_char_column,last_char_line:$last_char_line,last_char_columnm:$last_char_columnm,container_id:$container_id})",
         trial_id = cc.trial_id,
         cc_id = cc.cc_id,
         name = cc.name,
